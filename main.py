@@ -7,5 +7,5 @@ from fastapi import FastAPI
 app = FastAPI()
 
 @app.get('/')
-def main():
+def get_all():
     return "hello from fast api"
