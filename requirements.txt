@@ -27,7 +27,7 @@ jiter==0.10.0
 mccabe==0.7.0
 multidict==6.6.3
 multiprocess==0.70.16
-numpy==2.2.2
+numpy==2.0.2
 openai==1.91.0
 packaging==25.0
 pandas==2.3.0
