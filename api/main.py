@@ -7,8 +7,7 @@ from mangum import Mangum
 app = FastAPI()
 
 @app.get('/')
-def get_all():
-    """Take a number n and return the square of n."""
-    return {"message": "hello from Erkner"}
+async def root():
+    return {"message": "Hello World"}
 
 handler = Mangum(app=app)
