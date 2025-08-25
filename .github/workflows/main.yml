@@ -27,33 +27,36 @@ jobs:
             exit 1
           fi
 
+      # Verify main.py exists (adjust if your main file has a different name)
+      - name: Check main.py
+        run: |
+          if [ ! -f main.py ]; then
+            echo "Error: main.py not found"
+            exit 1
+          fi
+
       # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --target=./package -r requirements.txt
 
-      # Verify api folder exists and has files
-      - name: Check api folder
-        run: |
-          if [ ! -d api ] || [ -z "$(ls -A api)" ]; then
-            echo "Error: api folder is missing or empty"
-            exit 1
-          fi
-
       # Create archive of dependencies
       - name: Create archive of dependencies
         run: |
           cd package
           zip -r9 ../api.zip .
-        if: success() # Only run if previous steps succeed
-
-      # Add API files to zip
-      - name: Add API files to zip
-        run: |
-          cd api
-          zip -r9 ../api.zip .
         if: success()
+
+      # Add application files to zip (assumes main.py and other files in root)
+      - name: Add application files to zip
+        run: |
+          zip -r9 api.zip main.py
+        if: success()
+
+      # Debug zip contents (optional, for verification)
+      - name: Debug zip contents
+        run: unzip -l api.zip
 
       # Upload zip file as artifact
       - name: Upload zip file artifact
