@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Check out the repository
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       # Set up Python
       - name: Set up Python
@@ -18,25 +19,41 @@ jobs:
         with:
           python-version: "3.10.11"
 
+      # Verify requirements.txt exists
+      - name: Check requirements.txt
+        run: |
+          if [ ! -f requirements.txt ]; then
+            echo "Error: requirements.txt not found"
+            exit 1
+          fi
+
       # Install dependencies
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install --target=./package -r requirements.txt
-        # Installs dependencies into a 'package' directory for Lambda
+
+      # Verify api folder exists and has files
+      - name: Check api folder
+        run: |
+          if [ ! -d api ] || [ -z "$(ls -A api)" ]; then
+            echo "Error: api folder is missing or empty"
+            exit 1
+          fi
 
       # Create archive of dependencies
       - name: Create archive of dependencies
         run: |
           cd package
           zip -r9 ../api.zip .
-        # Zips the dependencies from the 'package' directory
+        if: success() # Only run if previous steps succeed
 
       # Add API files to zip
       - name: Add API files to zip
         run: |
           cd api
-          zip -g ../api.zip -r .
-        # Adds the application code to the zip
+          zip -r9 ../api.zip .
+        if: success()
 
       # Upload zip file as artifact
       - name: Upload zip file artifact
@@ -48,20 +65,18 @@ jobs:
   CD:
     runs-on: ubuntu-latest
     needs: [CI]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      # Check out the repository
-      - uses: actions/checkout@v4
+      # Check out the repository (optional, but included for clarity)
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Install AWS CLI
-      - name: Install AWS CLI
-        uses: unfor19/install-aws-cli-action@v1
+      # Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          version: 1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Download the zipped artifact
       - name: Download Lambda api.zip
@@ -72,15 +87,7 @@ jobs:
       # Upload to S3
       - name: Upload to S3
         run: aws s3 cp api.zip s3://fastapi12345123451245/api.zip
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Deploy to Lambda
       - name: Deploy new Lambda
         run: aws lambda update-function-code --function-name fastapi --s3-bucket fastapi12345123451245 --s3-key api.zip
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
