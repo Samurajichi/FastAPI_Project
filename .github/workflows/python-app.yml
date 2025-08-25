@@ -66,6 +66,7 @@ jobs:
     needs: [CI]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
+      - uses: actions/checkout@v4
       - name: Install AWS CLI
         uses: unfor19/install-aws-cli-action@v1
         with:
@@ -78,13 +79,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: api
-      - name: Create optimized zip
-        run: |
-          pip install -r requirements.txt -t ./package
-          cd package
-          zip -r ../api.zip .
-          cd ..
-          zip -g api.zip main.py  # Add your FastAPI entry point
       - name: Upload to S3
         run: aws s3 cp api.zip s3://fastapi12345123451245/api.zip
         env:
