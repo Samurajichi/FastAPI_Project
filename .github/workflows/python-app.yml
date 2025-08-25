@@ -21,7 +21,7 @@ jobs:
       - name: Create archive
         run: |
           cd package
-          zip -r ../api.zip . -x "*.pyc" "*__pycache__*" "*.dist-info*" "*.egg-info*" "*tests*" "*test*"
+          zip -r ../api.zip . -x "*.pyc" "*__pycache__*" "*.dist-info*" "*.egg-info*" "*tests*" "*test*" "*_test*" "*testing*"
           cd ..
           ls -l main.py  # Verify main.py exists
           zip -g api.zip main.py
