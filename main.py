@@ -1,13 +1,18 @@
-"""Main module for the FastAPI application.
-
-This module initializes the FastAPI app and defines API endpoints for the project.
-"""
 from fastapi import FastAPI
 from mangum import Mangum
+from users.controller import router as users_router
+
 app = FastAPI()
+handler = Mangum(app=app)
 
 @app.get('/')
 async def root():
     return {"message": "Mordo, chyba wszystk sie udalo"}
 
-handler = Mangum(app=app)
+
+def register_routes(app: FastAPI):  
+    app.include_router(users_router)
+
+
+
+register_routes(app)
