@@ -16,3 +16,5 @@ def register_routes(app: FastAPI):
 
 
 register_routes(app)
+
+
