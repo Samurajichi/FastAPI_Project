@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from mangum import Mangum
 from users.controller import router as users_router
 
 app = FastAPI()
-handler = Mangum(app=app)
+# handler = Mangum(app=app)
 
 @app.get('/')
 async def root():
@@ -18,3 +17,6 @@ def register_routes(app: FastAPI):
 register_routes(app)
 
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=80)
