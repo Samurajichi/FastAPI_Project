@@ -133,14 +133,14 @@ jobs:
           ECR_REPOSITORY: fastapi-app # Replace with your ECR repository name
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Download the current task definition and filter only required fields
+          # Download the current task definition and filter required fields
           aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query '{family: taskDefinition.family, taskRoleArn: taskDefinition.taskRoleArn, executionRoleArn: taskDefinition.executionRoleArn, networkMode: taskDefinition.networkMode, containerDefinitions: taskDefinition.containerDefinitions, volumes: taskDefinition.volumes, placementConstraints: taskDefinition.placementConstraints, requiresCompatibilities: taskDefinition.requiresCompatibilities, cpu: taskDefinition.cpu, memory: taskDefinition.memory, tags: taskDefinition.tags, pidMode: taskDefinition.pidMode, ipcMode: taskDefinition.ipcMode, proxyConfiguration: taskDefinition.proxyConfiguration, inferenceAccelerators: taskDefinition.inferenceAccelerators, ephemeralStorage: taskDefinition.ephemeralStorage, runtimePlatform: taskDefinition.runtimePlatform}' > task-definition.json
 
           # Debug: Print task definition JSON
           cat task-definition.json
 
-          # Update the task definition with the new image
-          jq '.containerDefinitions[0].image = "'"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'"' task-definition.json > updated-task-definition.json
+          # Update the task definition with the new image and remove null fields
+          jq 'del(.taskRoleArn | select(. == null)) | del(.tags | select(. == null)) | del(.pidMode | select(. == null)) | del(.ipcMode | select(. == null)) | del(.proxyConfiguration | select(. == null)) | del(.inferenceAccelerators | select(. == null)) | del(.ephemeralStorage | select(. == null)) | .containerDefinitions[0].image = "'"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'"' task-definition.json > updated-task-definition.json
 
           # Debug: Print updated task definition JSON
           cat updated-task-definition.json
