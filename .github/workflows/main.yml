@@ -133,8 +133,8 @@ jobs:
           ECR_REPOSITORY: fastapi-app # Replace with your ECR repository name
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Download the current task definition
-          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query taskDefinition > task-definition.json
+          # Download the current task definition and filter only required fields
+          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition | {family: .family, taskRoleArn: .taskRoleArn, executionRoleArn: .executionRoleArn, networkMode: .networkMode, containerDefinitions: .containerDefinitions, volumes: .volumes, placementConstraints: .placementConstraints, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory, tags: .tags, pidMode: .pidMode, ipcMode: .ipcMode, proxyConfiguration: .proxyConfiguration, inferenceAccelerators: .inferenceAccelerators, ephemeralStorage: .ephemeralStorage, runtimePlatform: .runtimePlatform}' > task-definition.json
 
           # Update the task definition with the new image
           jq '.containerDefinitions[0].image = "'"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'"' task-definition.json > updated-task-definition.json
