@@ -8,8 +8,8 @@ from errorHandling.errors import UserNotFoundError
 
 def get_users(db: Session) -> models.UserResponse:
     user = db.query(User).first()
-    if not user:
-        logging.warning(f"User not found.")
-        raise UserNotFoundError()
+    # if not user:
+    #     logging.warning(f"User not found.")
+    #     raise UserNotFoundError()
     logging.info(f"Successfully retrieved user")
     return user
