@@ -134,10 +134,16 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Download the current task definition and filter only required fields
-          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition | {family: .family, taskRoleArn: .taskRoleArn, executionRoleArn: .executionRoleArn, networkMode: .networkMode, containerDefinitions: .containerDefinitions, volumes: .volumes, placementConstraints: .placementConstraints, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory, tags: .tags, pidMode: .pidMode, ipcMode: .ipcMode, proxyConfiguration: .proxyConfiguration, inferenceAccelerators: .inferenceAccelerators, ephemeralStorage: .ephemeralStorage, runtimePlatform: .runtimePlatform}' > task-definition.json
+          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query '{family: taskDefinition.family, taskRoleArn: taskDefinition.taskRoleArn, executionRoleArn: taskDefinition.executionRoleArn, networkMode: taskDefinition.networkMode, containerDefinitions: taskDefinition.containerDefinitions, volumes: taskDefinition.volumes, placementConstraints: taskDefinition.placementConstraints, requiresCompatibilities: taskDefinition.requiresCompatibilities, cpu: taskDefinition.cpu, memory: taskDefinition.memory, tags: taskDefinition.tags, pidMode: taskDefinition.pidMode, ipcMode: taskDefinition.ipcMode, proxyConfiguration: taskDefinition.proxyConfiguration, inferenceAccelerators: taskDefinition.inferenceAccelerators, ephemeralStorage: taskDefinition.ephemeralStorage, runtimePlatform: taskDefinition.runtimePlatform}' > task-definition.json
+
+          # Debug: Print task definition JSON
+          cat task-definition.json
 
           # Update the task definition with the new image
           jq '.containerDefinitions[0].image = "'"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'"' task-definition.json > updated-task-definition.json
+
+          # Debug: Print updated task definition JSON
+          cat updated-task-definition.json
 
           # Register the new task definition
           NEW_TASK_REVISION=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text)
